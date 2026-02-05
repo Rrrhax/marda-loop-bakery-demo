@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Marda Loop Bakery Elite</title>
+    <title>Marda Loop Bakery Business</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -12,11 +12,10 @@
         body { font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .item-card:active { transform: scale(0.96); }
-        .modal { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(100%); visibility: hidden; }
+        .modal { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(100%); visibility: hidden; }
         .modal.active { transform: translateY(0); visibility: visible; }
-        .tab-btn.active { color: #f97316; }
-        .tab-indicator { transition: all 0.3s ease; }
         .promo-tag { background: linear-gradient(90deg, #f97316, #fb923c); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
     </style>
 </head>
 <body class="bg-[#FBFBFD] text-[#1D1D1F] pb-32">
@@ -24,20 +23,20 @@
     <header class="bg-white/90 backdrop-blur-xl p-5 sticky top-0 z-50 flex justify-between items-center border-b border-gray-100 rounded-b-[2.5rem]">
         <div>
             <h1 class="text-[10px] font-black text-orange-500 tracking-[0.3em] uppercase">Marda Loop</h1>
-            <h2 class="text-xl font-black tracking-tighter">BAKERY ELITE</h2>
+            <h2 class="text-xl font-black tracking-tighter uppercase">Bakery Elite</h2>
         </div>
         <div class="flex flex-col items-end">
-            <button onclick="debugWeather()" class="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-2xl border border-gray-100 active:scale-90 transition-transform">
-                <i id="w-icon" class="fas fa-magic text-orange-500 text-[10px]"></i>
-                <span id="current-temp" class="text-xs font-black">??°</span>
+            <button onclick="debugWeather()" class="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-2xl border border-gray-100 active:scale-90 shadow-inner">
+                <i id="w-icon" class="fas fa-bolt text-orange-500 text-[10px]"></i>
+                <span id="current-temp" class="text-xs font-black">??°C</span>
             </button>
-            <span class="text-[6px] text-gray-400 font-bold uppercase mt-1 tracking-widest">Tap to Debug</span>
+            <span class="text-[6px] text-gray-400 font-bold uppercase mt-1 tracking-widest">Weather Debug</span>
         </div>
     </header>
 
-    <!-- App Navigation -->
+    <!-- Nav Tabs -->
     <nav class="p-4">
-        <div class="flex bg-gray-100/80 p-1 rounded-2xl relative border border-gray-100">
+        <div class="flex bg-gray-100/80 p-1 rounded-2xl border border-gray-100">
             <button onclick="switchView('menu')" id="btn-menu" class="flex-1 py-2.5 text-[10px] font-bold rounded-xl transition-all z-10 bg-white shadow-sm ring-1 ring-black/5">MENU</button>
             <button onclick="switchView('history')" id="btn-history" class="flex-1 py-2.5 text-[10px] font-bold rounded-xl transition-all z-10 text-gray-400">HISTORY</button>
         </div>
@@ -45,57 +44,62 @@
 
     <!-- Categories -->
     <div id="cat-nav" class="flex space-x-3 px-4 overflow-x-auto no-scrollbar mb-4">
-        <button onclick="filterCat('all')" class="cat-pill bg-black text-white px-5 py-2 rounded-2xl text-[10px] font-bold whitespace-nowrap active:scale-95 transition-all">ALL</button>
-        <button onclick="filterCat('pastry')" class="cat-pill bg-white text-gray-400 border border-gray-100 px-5 py-2 rounded-2xl text-[10px] font-bold whitespace-nowrap active:scale-95 transition-all">CROISSANTS</button>
-        <button onclick="filterCat('drinks')" class="cat-pill bg-white text-gray-400 border border-gray-100 px-5 py-2 rounded-2xl text-[10px] font-bold whitespace-nowrap active:scale-95 transition-all">DRINKS</button>
-        <button onclick="filterCat('lunch')" class="cat-pill bg-white text-gray-400 border border-gray-100 px-5 py-2 rounded-2xl text-[10px] font-bold whitespace-nowrap active:scale-95 transition-all">LUNCH</button>
+        <button onclick="filterCat('all')" class="cat-pill bg-black text-white px-5 py-2 rounded-2xl text-[10px] font-bold whitespace-nowrap">TOP PICKS</button>
+        <button onclick="filterCat('pastry')" class="cat-pill bg-white text-gray-400 border border-gray-50 px-5 py-2 rounded-2xl text-[10px] font-bold whitespace-nowrap">PASTRY</button>
+        <button onclick="filterCat('drinks')" class="cat-pill bg-white text-gray-400 border border-gray-50 px-5 py-2 rounded-2xl text-[10px] font-bold whitespace-nowrap">DRINKS</button>
+        <button onclick="filterCat('lunch')" class="cat-pill bg-white text-gray-400 border border-gray-50 px-5 py-2 rounded-2xl text-[10px] font-bold whitespace-nowrap">LUNCH</button>
     </div>
 
-    <!-- Content -->
+    <!-- Main Grid -->
     <main class="px-4">
         <div id="view-menu" class="grid grid-cols-2 gap-4"></div>
-        <div id="view-history" class="hidden space-y-3"></div>
+        <div id="view-history" class="hidden space-y-3 pb-10"></div>
     </main>
 
-    <!-- Cart Modal -->
-    <div id="modal-bg" class="fixed inset-0 bg-black/60 z-[60] hidden opacity-0" onclick="toggleCart(false)"></div>
+    <!-- UI Overlays -->
+    <div id="modal-bg" class="fixed inset-0 bg-black/60 z-[60] hidden opacity-0 transition-opacity" onclick="closeAll()"></div>
+    
+    <!-- 🛒 Shopping Cart -->
     <div id="cart-modal" class="fixed inset-x-0 bottom-0 bg-white rounded-t-[3rem] z-[70] modal p-6 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
         <div class="flex justify-between items-center mb-8 px-2">
-            <h2 class="text-2xl font-black uppercase tracking-tighter">Your Order</h2>
+            <h2 class="text-2xl font-black uppercase tracking-tighter">Review Bag</h2>
             <button onclick="toggleCart(false)" class="bg-gray-100 h-10 w-10 rounded-full flex items-center justify-center"><i class="fas fa-times text-gray-500"></i></button>
         </div>
         <div id="cart-list" class="space-y-4 mb-8"></div>
         <div class="bg-gray-50 p-6 rounded-[2.5rem] space-y-3 border border-gray-100">
             <div class="flex justify-between text-gray-500 text-sm font-bold"><span>Subtotal</span><span id="sub-price">$0.00</span></div>
-            <div class="flex justify-between text-gray-400 text-xs font-medium italic"><span>GST (5%)</span><span id="tax-price">$0.00</span></div>
+            <div class="flex justify-between text-gray-400 text-[10px] italic"><span>GST (5.0%)</span><span id="tax-price">$0.00</span></div>
             <div class="flex justify-between items-end pt-3 border-t border-gray-200">
-                <span class="font-black text-xl">TOTAL</span>
-                <span id="final-price" class="text-2xl font-black text-orange-500">$0.00</span>
+                <span class="font-black text-xl">GRRAND TOTAL</span>
+                <span id="final-price" class="text-2xl font-black text-orange-500 font-black">$0.00</span>
             </div>
         </div>
         <button onclick="processOrder()" id="pay-btn" class="w-full bg-[#1D1D1F] text-white py-5 rounded-[2.5rem] mt-6 font-black text-lg flex items-center justify-center space-x-3 active:scale-95 transition-all shadow-xl">
-            <span id="pay-text">PAY NOW</span>
+            <span id="pay-text">CONFIRM & PAY</span>
             <i id="pay-icon" class="fas fa-arrow-right text-xs"></i>
         </button>
     </div>
 
-    <!-- History Detail Modal -->
-    <div id="history-modal" class="fixed inset-x-0 bottom-0 bg-white rounded-t-[3rem] z-[80] modal p-8 shadow-2xl max-h-[80vh] overflow-y-auto no-scrollbar">
-        <h2 id="hist-id" class="text-xl font-black text-orange-500 mb-4 tracking-tighter">ORDER DETAILS</h2>
-        <div id="hist-content" class="space-y-4 mb-8"></div>
-        <button onclick="closeHist()" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs">Got it</button>
+    <!-- 📋 History Details -->
+    <div id="history-modal" class="fixed inset-x-0 bottom-0 bg-white rounded-t-[3rem] z-[80] modal p-10 shadow-2xl max-h-[80vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="hist-id" class="text-xl font-black text-orange-500 uppercase tracking-tighter">ORDER #0000</h2>
+            <button onclick="closeHist()" class="text-gray-300"><i class="fas fa-times-circle text-2xl"></i></button>
+        </div>
+        <div id="hist-content" class="space-y-4 mb-10 text-sm"></div>
+        <button onclick="closeHist()" class="w-full bg-gray-50 text-gray-400 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Back to History</button>
     </div>
 
     <!-- Floating Trigger -->
-    <div id="fl-cart" class="fixed bottom-8 inset-x-6 bg-[#1D1D1F] text-white p-4 rounded-3xl flex justify-between items-center hidden z-40" onclick="toggleCart(true)">
+    <div id="fl-cart" class="fixed bottom-8 inset-x-6 bg-[#1D1D1F] text-white p-4 rounded-3xl flex justify-between items-center hidden z-40 animate-in fade-in slide-in-from-bottom-10" onclick="toggleCart(true)">
         <div class="flex items-center space-x-4">
-            <div class="relative bg-orange-500 h-10 w-10 rounded-xl flex items-center justify-center">
-                <i class="fas fa-shopping-bag text-sm"></i>
-                <span id="fl-count" class="absolute -top-2 -right-2 bg-white text-black text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center border-2 border-[#1D1D1F]">0</span>
+            <div class="relative bg-orange-500 h-11 w-11 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-shopping-bag"></i>
+                <span id="fl-count" class="absolute -top-1.5 -right-1.5 bg-white text-black text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center border-2 border-[#1D1D1F]">0</span>
             </div>
-            <span id="fl-total" class="font-bold text-lg tracking-tighter">$0.00</span>
+            <span id="fl-total" class="font-black text-lg">$0.00</span>
         </div>
-        <span class="text-[10px] font-black uppercase bg-white/10 px-4 py-2 rounded-xl italic">Review Bag</span>
+        <span class="text-[9px] font-black uppercase text-orange-500 tracking-widest bg-orange-500/10 px-4 py-2 rounded-xl">Review</span>
     </div>
 
     <script>
@@ -107,31 +111,36 @@
             { id: 1, name: "Gold Croissant", price: 4.50, cat: "pastry", type: "warm", img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400" },
             { id: 2, name: "YYC Iced Latte", price: 5.75, cat: "drinks", type: "cold", img: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400" },
             { id: 3, name: "Almond Pain", price: 5.00, cat: "pastry", type: "warm", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400" },
-            { id: 4, name: "Marda Club", price: 12.50, cat: "lunch", type: "warm", img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400" },
-            { id: 5, name: "Iced Tea", price: 3.50, cat: "drinks", type: "cold", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400" },
-            { id: 6, name: "Avocado Sourdough", price: 10.99, cat: "lunch", type: "warm", img: "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400" }
+            { id: 4, name: "Dark Hot Cocoa", price: 4.75, cat: "drinks", type: "warm", img: "https://images.unsplash.com/photo-1544787210-2211d44b515b?w=400" },
+            { id: 5, name: "Maple Iced Tea", price: 3.50, cat: "drinks", type: "cold", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400" },
+            { id: 6, name: "Spiced Chai", price: 5.25, cat: "drinks", type: "warm", img: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=400" },
+            { id: 7, name: "Marda Club", price: 12.50, cat: "lunch", type: "warm", img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400" },
+            { id: 8, name: "Avocado Sourdough", price: 10.99, cat: "lunch", type: "warm", img: "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400" },
+            { id: 9, name: "Blueberry Muffin", price: 3.50, cat: "pastry", type: "warm", img: "https://images.unsplash.com/photo-1558401391-7899b4bd5bbf?w=400" },
+            { id: 10, name: "Flat White", price: 4.25, cat: "drinks", type: "warm", img: "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=400" }
         ];
 
         let cart = {};
-        let history = JSON.parse(localStorage.getItem('bakery_history')) || [];
+        let orderHistory = JSON.parse(localStorage.getItem('bakery_history')) || [];
         let currentTemp = 12;
         let activeCat = 'all';
         let isProcessing = false;
 
         async function fetchWeather() {
+            const tempEl = document.getElementById('current-temp');
             try {
                 const res = await fetch('https://wttr.in/Calgary?format=%t&u&ts=' + Date.now());
                 const t = await res.text();
                 currentTemp = parseInt(t.replace('+', '')) || 12;
-                document.getElementById('current-temp').innerText = currentTemp + "°C";
+                tempEl.innerText = currentTemp + "°C";
                 renderMenu();
-            } catch(e) { document.getElementById('current-temp').innerText = "CALGARY"; }
+            } catch(e) { tempEl.innerText = "CALGARY"; }
         }
         fetchWeather();
 
         function debugWeather() {
-            currentTemp = currentTemp > 10 ? -5 : 15;
-            document.getElementById('current-temp').innerText = currentTemp + "°C (DEBUG)";
+            currentTemp = (currentTemp > 10) ? -5 : 15;
+            document.getElementById('current-temp').innerText = currentTemp + "°C (DBG)";
             renderMenu();
             tg.HapticFeedback.impactOccurred('rigid');
         }
@@ -140,8 +149,8 @@
             document.getElementById('view-menu').classList.toggle('hidden', view !== 'menu');
             document.getElementById('cat-nav').classList.toggle('hidden', view !== 'menu');
             document.getElementById('view-history').classList.toggle('hidden', view !== 'history');
-            document.getElementById('btn-menu').className = `flex-1 py-2.5 text-[10px] font-bold rounded-xl transition-all z-10 ${view === 'menu' ? 'bg-white shadow-sm ring-1 ring-black/5 text-[#1D1D1F]' : 'text-gray-400'}`;
-            document.getElementById('btn-history').className = `flex-1 py-2.5 text-[10px] font-bold rounded-xl transition-all z-10 ${view === 'history' ? 'bg-white shadow-sm ring-1 ring-black/5 text-[#1D1D1F]' : 'text-gray-400'}`;
+            document.getElementById('btn-menu').className = `flex-1 py-2.5 text-[10px] font-black rounded-xl transition-all ${view === 'menu' ? 'bg-white shadow-sm ring-1 ring-black/5 text-gray-900' : 'text-gray-400'}`;
+            document.getElementById('btn-history').className = `flex-1 py-2.5 text-[10px] font-black rounded-xl transition-all ${view === 'history' ? 'bg-white shadow-sm ring-1 ring-black/5 text-gray-900' : 'text-gray-400'}`;
             if(view === 'history') renderHistory();
         }
 
@@ -149,47 +158,47 @@
             activeCat = cat;
             renderMenu();
             document.querySelectorAll('.cat-pill').forEach(el => {
-                const isMatch = el.innerText.toLowerCase().includes(cat) || (cat === 'all' && el.innerText === 'ALL');
-                el.className = `cat-pill px-5 py-2 rounded-2xl text-[10px] font-bold whitespace-nowrap transition-all ${isMatch ? 'bg-black text-white' : 'bg-white text-gray-400 border border-gray-100'}`;
+                const match = el.innerText.toLowerCase().includes(cat) || (cat === 'all' && el.innerText === 'TOP PICKS');
+                el.className = `cat-pill px-5 py-2 rounded-2xl text-[10px] font-black whitespace-nowrap transition-all ${match ? 'bg-black text-white ring-2 ring-black/5' : 'bg-white text-gray-400 border border-gray-100'}`;
             });
         }
 
         function renderMenu() {
             const grid = document.getElementById('view-menu');
-            const sortedItems = [...menu].sort((a,b) => {
-                const aMatch = (currentTemp > 10 && a.type === 'cold') || (currentTemp <= 10 && a.type === 'warm');
-                const bMatch = (currentTemp > 10 && b.type === 'cold') || (currentTemp <= 10 && b.type === 'warm');
-                return bMatch - aMatch;
+            const sorted = [...menu].sort((a,b) => {
+                const aM = (currentTemp > 10 && a.type === 'cold') || (currentTemp <= 10 && a.type === 'warm');
+                const bM = (currentTemp > 10 && b.type === 'cold') || (currentTemp <= 10 && b.type === 'warm');
+                return bM - aM;
             });
 
-            grid.innerHTML = sortedItems.filter(i => activeCat === 'all' || i.cat === activeCat).map(i => {
+            grid.innerHTML = sorted.filter(i => activeCat === 'all' || i.cat === activeCat).map(i => {
                 const isPromo = (currentTemp > 10 && i.type === 'cold') || (currentTemp <= 10 && i.type === 'warm');
                 return `
                     <div class="item-card bg-white p-3 rounded-[2.5rem] shadow-sm border border-gray-50 flex flex-col items-center relative overflow-hidden">
-                        ${isPromo ? '<div class="promo-tag absolute top-0 right-0 px-3 py-1 rounded-bl-2xl text-[7px] font-black text-white uppercase tracking-tighter">Local Choice</div>' : ''}
-                        <img src="${i.img}" class="h-28 w-full object-cover rounded-[2.2rem] mb-3">
+                        ${isPromo ? '<div class="promo-tag absolute top-0 right-0 px-3 py-1 rounded-bl-2xl text-[7px] font-black text-white uppercase tracking-tighter">Season Match</div>' : ''}
+                        <img src="${i.img}" class="h-28 w-full object-cover rounded-[2rem] mb-3">
                         <h3 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 text-center">${i.name}</h3>
-                        <p class="font-black text-lg mb-3">$${i.price.toFixed(2)}</p>
-                        <button onclick="updateCart(${i.id}, 1)" class="w-full bg-gray-50 text-orange-500 py-3.5 rounded-[1.8rem] active:bg-orange-500 active:text-white transition-all"><i class="fas fa-plus"></i></button>
+                        <p class="font-black text-base mb-3">$${i.price.toFixed(2)}</p>
+                        <button onclick="updateCart(${i.id}, 1)" class="w-full bg-gray-50 text-orange-500 py-3 rounded-2xl active:bg-orange-500 active:text-white transition-all"><i class="fas fa-plus"></i></button>
                     </div>
                 `;
             }).join('');
         }
 
         function updateCart(id, delta) {
+            if(isProcessing) return;
             cart[id] = (cart[id] || 0) + delta;
             if(cart[id] <= 0) delete cart[id];
-            renderGlobal();
-            if (document.getElementById('cart-modal').classList.contains('active')) renderCartModal();
-            tg.HapticFeedback.impactOccurred('light');
-        }
-
-        function renderGlobal() {
+            
             const count = Object.values(cart).reduce((a,b) => a+b, 0);
             const total = Object.keys(cart).reduce((acc, id) => acc + (menu.find(m => m.id == id).price * cart[id]), 0);
+            
             document.getElementById('fl-count').innerText = count;
             document.getElementById('fl-total').innerText = `$${total.toFixed(2)}`;
             document.getElementById('fl-cart').classList.toggle('hidden', count === 0);
+            
+            if (document.getElementById('cart-modal').classList.contains('active')) renderCartModal();
+            tg.HapticFeedback.impactOccurred('light');
         }
 
         function toggleCart(show) {
@@ -207,18 +216,18 @@
             document.getElementById('tax-price').innerText = `$${(sub * 0.05).toFixed(2)}`;
             document.getElementById('final-price').innerText = `$${(sub * 1.05).toFixed(2)}`;
 
-            if(!Object.keys(cart).length) { list.innerHTML = `<p class="text-center py-10 text-gray-300 uppercase font-black text-[10px]">Empty</p>`; document.getElementById('pay-btn').disabled = true; return; }
+            if(!Object.keys(cart).length) { list.innerHTML = `<p class="text-center py-10 text-gray-300 font-bold uppercase text-[9px] tracking-[.3em]">Empty Bag</p>`; document.getElementById('pay-btn').disabled = true; return; }
             document.getElementById('pay-btn').disabled = false;
 
             list.innerHTML = Object.keys(cart).map(id => {
                 const item = menu.find(m => m.id == id);
                 return `
-                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-2xl">
-                        <span class="text-sm font-bold truncate pr-4">${item.name}</span>
-                        <div class="flex items-center space-x-4 bg-white px-3 py-1 rounded-xl shadow-sm">
-                            <button onclick="updateCart(${id},-1)" class="text-orange-500 font-bold">－</button>
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-2xl border border-black/5">
+                        <span class="text-xs font-black uppercase tracking-tighter truncate pr-4">${item.name}</span>
+                        <div class="flex items-center space-x-4 bg-white px-2 py-1 rounded-xl shadow-sm">
+                            <button onclick="updateCart(${id},-1)" class="text-orange-500 font-bold text-lg">－</button>
                             <span class="text-xs font-black min-w-[15px] text-center">${cart[id]}</span>
-                            <button onclick="updateCart(${id},1)" class="text-orange-500 font-bold">＋</button>
+                            <button onclick="updateCart(${id},1)" class="text-orange-500 font-bold text-lg">＋</button>
                         </div>
                     </div>
                 `;
@@ -226,49 +235,57 @@
         }
 
         function processOrder() {
-            if(isProcessing) return; isProcessing = true;
+            if(isProcessing) return;
+            isProcessing = true;
             const btn = document.getElementById('pay-btn');
-            document.getElementById('pay-text').innerText = "SENDING ORDER...";
+            const txt = document.getElementById('pay-text');
+            txt.innerText = "AUTHORIZING PAYMENT...";
+            btn.classList.add('animate-pulse');
+            
             tg.HapticFeedback.notificationOccurred('success');
             
             setTimeout(() => {
                 const itemsStr = Object.keys(cart).map(id => menu.find(m => m.id == id).name + ' x' + cart[id]).join(', ');
                 const order = { id: '#'+(Math.floor(Math.random()*9000)+1000), date: new Date().toLocaleTimeString(), total: document.getElementById('final-price').innerText, details: itemsStr };
-                history.unshift(order);
-                localStorage.setItem('bakery_history', JSON.stringify(history));
+                orderHistory.unshift(order);
+                localStorage.setItem('bakery_history', JSON.stringify(orderHistory));
                 
-                document.getElementById('pay-text').innerText = "SUCCESSFUL";
+                txt.innerText = "SUCCESSFUL";
+                btn.classList.remove('animate-pulse');
                 btn.style.background = "#22C55E";
 
+                // Cart cleaning fix
+                cart = {};
+                document.getElementById('fl-cart').classList.add('hidden');
+
+                // Auto-close after 5 seconds
                 setTimeout(() => {
-                    cart = {}; 
-                    renderGlobal(); 
-                    toggleCart(false); 
-                    isProcessing = false; 
+                    toggleCart(false);
                     switchView('history');
+                    isProcessing = false;
                     btn.style.background = "#1D1D1F";
-                    document.getElementById('pay-text').innerText = "PAY NOW";
-                }, 1500);
-            }, 2000);
+                    txt.innerText = "CONFIRM & PAY";
+                }, 5000);
+            }, 2500);
         }
 
         function renderHistory() {
             const list = document.getElementById('view-history');
-            if(!history.length) { list.innerHTML = `<p class="text-center text-gray-400 py-20 text-[10px] font-black uppercase">No Orders</p>`; return; }
-            list.innerHTML = `<h3 class="text-[9px] font-black text-gray-400 uppercase tracking-widest px-2 mb-4">Past Glory</h3>` + history.map((o, i) => `
-                <div onclick="showHist(${i})" class="bg-white p-5 rounded-[2rem] shadow-sm flex justify-between items-center mb-3 border border-gray-50 active:scale-95 transition-transform">
-                    <div><p class="text-[9px] font-black text-orange-500 uppercase">${o.id}</p><p class="text-sm font-bold">${o.total}</p></div>
-                    <i class="fas fa-chevron-right text-[8px] text-gray-200"></i>
+            if(!orderHistory.length) { list.innerHTML = `<p class="text-center text-gray-400 py-20 text-[9px] font-black tracking-widest uppercase">No past treats</p>`; return; }
+            list.innerHTML = `<h3 class="text-[9px] font-bold text-gray-300 uppercase tracking-widest px-2 mb-4">Transaction History</h3>` + orderHistory.map((o, i) => `
+                <div onclick="showHist(${i})" class="bg-white p-5 rounded-[2rem] shadow-sm flex justify-between items-center mb-3 active:scale-95 transition-all cursor-pointer border border-gray-50">
+                    <div><p class="text-[9px] font-black text-orange-500">${o.id} • ${o.date}</p><p class="font-bold text-sm">Receipt View</p></div>
+                    <div class="font-black text-lg text-gray-900">${o.total}</div>
                 </div>
             `).join('');
         }
 
         function showHist(i) {
-            const o = history[i];
+            const o = orderHistory[i];
             const m = document.getElementById('history-modal');
             const bg = document.getElementById('modal-bg');
-            document.getElementById('hist-id').innerText = `ORDER ${o.id}`;
-            document.getElementById('hist-content').innerHTML = `<p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Receipt:</p><p class="font-medium bg-gray-50 p-4 rounded-2xl leading-relaxed">${o.details}</p><div class="flex justify-between text-[10px] font-black uppercase text-gray-400 mt-4"><span>Date: ${o.date}</span><span>Paid: ${o.total}</span></div>`;
+            document.getElementById('hist-id').innerText = `RECEIPT ${o.id}`;
+            document.getElementById('hist-content').innerHTML = `<div class="space-y-4"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Items:</p><p class="font-bold text-sm leading-relaxed">${o.details}</p><div class="flex justify-between border-t border-gray-100 pt-4"><span class="text-xs font-bold text-gray-400 uppercase">Paid Total</span><span class="text-xl font-black text-orange-500">${o.total}</span></div></div>`;
             bg.classList.remove('hidden'); m.style.visibility = "visible"; m.classList.add('active'); setTimeout(()=>bg.style.opacity="1",10);
         }
 
@@ -278,11 +295,9 @@
             m.classList.remove('active'); bg.style.opacity="0"; setTimeout(()=>{bg.classList.add('hidden'); m.style.visibility="hidden";},300);
         }
 
-        function closeModals() {
-            toggleCart(false); closeHist();
-        }
+        function closeAll() { toggleCart(false); closeHist(); }
 
-        renderMenu();
+        switchView('menu');
     </script>
 </body>
 </html>
