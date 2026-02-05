@@ -15,3 +15,5 @@ GitHub Pages: https://Rrrhax.github.io/marda-loop-bakery-demo/
 - `bakery_webapp_fixed.py`: Flask API/server
 - `bakery_bot_fixed.py`: Telegram bot
 - `menu.json`: Editable menu
+
+Last deploy: 2026-02-05 09:07 UTC - All fixes (cart 3s, weather parse, cocoa img) applied. ONE COMMIT ONLY.
