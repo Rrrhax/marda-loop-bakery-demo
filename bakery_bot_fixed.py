@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.types import WebAppInfo, ReplyKeyboardMarkup, KeyboardButton
 from aiogram import F
 
-API_TOKEN = os.getenv('TELEGRAM_TOKEN')
+with open('secrets.json') as f: secrets = json.load(f); API_TOKEN = secrets.get('telegram', {}).get('bot_token')
 WEBAPP_URL = os.getenv('WEBAPP_URL', 'http://localhost:5000')
 
 if not API_TOKEN:
