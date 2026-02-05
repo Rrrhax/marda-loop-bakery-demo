@@ -63,7 +63,7 @@
     <div id="cart-modal" class="fixed inset-x-0 bottom-0 bg-white rounded-t-[3rem] z-[70] modal p-6 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
         <div class="flex justify-between items-center mb-8 px-2">
             <h2 class="text-2xl font-black uppercase tracking-tighter">Review Bag</h2>
-            <button onclick="toggleCart(false)" class="bg-gray-100 h-10 w-10 rounded-full flex items-center justify-center"><i class="fas fa-times text-gray-500"></i></button>
+            <button onclick="toggleCart(false)" class="bg-gray-50 h-10 w-10 rounded-full flex items-center justify-center"><i class="fas fa-times text-gray-500"></i></button>
         </div>
         <div id="cart-list" class="space-y-4 mb-8"></div>
         <div class="bg-gray-50 p-6 rounded-[2.5rem] space-y-3 border border-gray-100">
@@ -71,7 +71,7 @@
             <div class="flex justify-between text-gray-400 text-[10px] italic"><span>GST (5.0%)</span><span id="tax-price">$0.00</span></div>
             <div class="flex justify-between items-end pt-3 border-t border-gray-200">
                 <span class="font-black text-xl">GRRAND TOTAL</span>
-                <span id="final-price" class="text-2xl font-black text-orange-500 font-black">$0.00</span>
+                <span id="final-price" class="text-2xl font-black text-orange-500">$0.00</span>
             </div>
         </div>
         <button onclick="processOrder()" id="pay-btn" class="w-full bg-[#1D1D1F] text-white py-5 rounded-[2.5rem] mt-6 font-black text-lg flex items-center justify-center space-x-3 active:scale-95 transition-all shadow-xl">
@@ -107,14 +107,13 @@
         tg.expand();
         tg.ready();
 
-        const TAX_RATE = 0.05;  // Alberta GST
+        const TAX_RATE = 0.05;
         const BACKEND_URL = '/api';
 
         let menu = [];
         fetch('/menu.json').then(r=>r.json()).then(m=>{menu=m; renderMenu();}).catch(()=>console.error('Menu load fail'));
 
         let weatherCache = { temp: 12, expires: 0 };
-
         let cart = {};
         let orderHistory = JSON.parse(localStorage.getItem('bakery_history')) || [];
         let currentTemp = 12;
@@ -136,7 +135,7 @@
                 currentTemp = parseInt(tempStr) || 12;
                 console.log('Weather parsed:', t, '→', currentTemp);
                 tempEl.innerText = currentTemp + "°C";
-                weatherCache = { temp: currentTemp, expires: Date.now() + 300000 };  // 5min
+                weatherCache = { temp: currentTemp, expires: Date.now() + 300000 };
                 renderMenu();
             } catch(e) { 
                 tempEl.innerText = "CALGARY"; 
@@ -240,7 +239,7 @@
             }).join('');
         }
 
-        function processOrder() {
+        async function processOrder() {
             if(isProcessing) return;
             isProcessing = true;
             const btn = document.getElementById('pay-btn');
@@ -250,9 +249,30 @@
             
             tg.HapticFeedback.notificationOccurred('success');
             
+            const payload = {
+                items: Object.keys(cart).map(id => ({id: parseInt(id), qty: cart[id]})),
+                total: parseFloat(document.getElementById('final-price').innerText.replace('$', '')),
+                user_id: tg.initDataUnsafe?.user?.id || 'anon',
+                timestamp: new Date().toISOString()
+            };
+            
+            try {
+                const res = await fetch(`${BACKEND_URL}/order`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                await res.json();
+            } catch(e) { console.error('Backend optional fail'); }
+            
+            tg.sendData(JSON.stringify({
+                items: Object.keys(cart).map(id => menu.find(m => m.id == parseInt(id))?.name + ' x' + cart[id]),
+                total: payload.total
+            }));
+            
             setTimeout(() => {
-                const itemsStr = Object.keys(cart).map(id => menu.find(m => m.id == id).name + ' x' + cart[id]).join(', ');
-                const order = { id: '#'+(Math.floor(Math.random()*9000)+1000), date: new Date().toLocaleTimeString(), total: document.getElementById('final-price').innerText, details: itemsStr };
+                const itemsStr = Object.keys(cart).map(id => menu.find(m => m.id == parseInt(id)).name + ' x' + cart[id]).join(', ');
+                const order = { id: '#'+(Math.floor(Math.random()*9000)+1000), date: new Date().toLocaleTimeString(), total: '$' + payload.total.toFixed(2), details: itemsStr };
                 orderHistory.unshift(order);
                 localStorage.setItem('bakery_history', JSON.stringify(orderHistory));
                 
@@ -260,11 +280,9 @@
                 btn.classList.remove('animate-pulse');
                 btn.style.background = "#22C55E";
 
-                // Cart cleaning fix
                 cart = {};
                 document.getElementById('fl-cart').classList.add('hidden');
 
-                // Auto-close after 5 seconds
                 setTimeout(() => {
                     toggleCart(false);
                     switchView('history');
