@@ -143,7 +143,9 @@
             try {
                 const res = await fetch('https://wttr.in/Calgary?format=%t&u&ts=' + Date.now());
                 const t = await res.text();
-                currentTemp = parseInt(t.replace('+', '')) || 12;
+                let tempStr = t.replace(/[°C°F+]/g, '').trim();
+                currentTemp = parseInt(tempStr) || 12;
+                console.log('Weather parsed:', t, '→', currentTemp);
                 tempEl.innerText = currentTemp + "°C";
                 weatherCache = { temp: currentTemp, expires: Date.now() + 300000 };  // 5min
                 renderMenu();
@@ -280,7 +282,7 @@
                     isProcessing = false;
                     btn.style.background = "#1D1D1F";
                     txt.innerText = "CONFIRM & PAY";
-                }, 5000);
+                }, 3000);
             }, 2500);
         }
 
