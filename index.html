@@ -3,92 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Marda Loop Bakery</title>
+    <title>Marda Loop Bakery Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .item-card { transition: transform 0.2s; }
+        body { font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .item-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .item-card:active { transform: scale(0.95); }
+        .cart-anim { animation: bounce 0.5s; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .gradient-bg { background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 pb-24">
-    <!-- Header -->
-    <header class="bg-white p-6 shadow-sm sticky top-0 z-10">
-        <h1 class="text-2xl font-bold text-center text-orange-600">🥐 Marda Loop Bakery</h1>
-        <p id="weather-tip" class="text-sm text-gray-500 text-center mt-1 italic">Loading local vibes...</p>
+<body class="bg-gray-50 text-gray-900 pb-32">
+    <!-- WebApp Content -->
+    <header class="bg-white p-6 shadow-md sticky top-0 z-50 rounded-b-3xl">
+        <div class="flex justify-between items-center">
+            <h1 class="text-xl font-black text-orange-600 tracking-tighter">MARDA LOOP<br><span class="text-gray-400">BAKERY & CO.</span></h1>
+            <div id="weather-pill" class="bg-orange-50 px-3 py-1 rounded-2xl flex items-center space-x-2 border border-orange-100">
+                <i class="fas fa-thermometer-half text-orange-500 text-xs"></i>
+                <span id="current-temp" class="text-[10px] font-bold text-orange-600 uppercase tracking-widest">12°C</span>
+            </div>
+        </div>
     </header>
 
-    <!-- Menu Items -->
-    <main class="p-4 space-y-4">
-        <div id="recommendation-badge" class="bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded hidden text-center">BEST FOR CURRENT WEATHER</div>
-        
-        <div class="grid grid-cols-1 gap-4" id="menu-container">
-            <!-- Items will be injected by JS -->
-        </div>
+    <!-- Categories -->
+    <div class="flex space-x-3 p-4 overflow-x-auto no-scrollbar pt-6">
+        <button onclick="filterCategory('all')" class="cat-btn bg-black text-white px-6 py-2 rounded-2xl text-xs font-bold whitespace-nowrap shadow-lg shadow-gray-200">🔥 TOP PICKS</button>
+        <button onclick="filterCategory('pastry')" class="cat-btn bg-white text-gray-400 px-6 py-2 rounded-2xl text-xs font-bold whitespace-nowrap border border-gray-100">🥐 PASTRY</button>
+        <button onclick="filterCategory('coffee')" class="cat-btn bg-white text-gray-400 px-6 py-2 rounded-2xl text-xs font-bold whitespace-nowrap border border-gray-100">☕️ COFFEE</button>
+        <button onclick="filterCategory('lunch')" class="cat-btn bg-white text-gray-400 px-6 py-2 rounded-2xl text-xs font-bold whitespace-nowrap border border-gray-100">🥗 LUNCH</button>
+    </div>
+
+    <!-- Menu Grid -->
+    <main class="px-4 space-y-6 mt-2" id="menu-grid">
+        <!-- Injected by JS -->
     </main>
+
+    <!-- Custom Cart Summary (Overlay) -->
+    <div id="cart-summary" class="fixed bottom-6 left-4 right-4 bg-black text-white p-4 rounded-3xl flex justify-between items-center hidden z-50 shadow-2xl">
+        <div class="flex items-center space-x-4">
+            <div class="relative">
+                <i class="fas fa-shopping-bag text-orange-400 text-xl"></i>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-white text-black text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">0</span>
+            </div>
+            <span id="cart-total-text" class="font-bold text-sm">TOTAL: $0.00</span>
+        </div>
+        <button onclick="tgPay()" class="bg-orange-500 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest">Order Now</button>
+    </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        tg.MainButton.setText("VIEW CART");
-        tg.MainButton.hide();
+        tg.ready();
 
-        let order = {};
         const items = [
-            { id: 1, name: "Fresh Baguette", price: 4.50, desc: "Crispy crust, soft inside (Best with soup!)", type: "warm" },
-            { id: 2, name: "Iced Latte", price: 5.25, desc: "Perfect for a sunny Calgary afternoon", type: "cold" },
-            { id: 3, name: "Maple Syrup Croissant", price: 3.75, desc: "A Canadian classic treat", type: "neutral" },
-            { id: 4, name: "Hot Hot Cocoa", price: 4.00, desc: "Thick, rich and steaming hot", type: "warm" }
+            { id: 1, name: "Gold Croissant", price: 4.50, cat: "pastry", img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=300&q=80", info: "Buttery, flaky, handmade excellence." },
+            { id: 2, name: "Iced YYC Latte", price: 5.75, cat: "coffee", img: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=300&q=80", info: "Local roasted beans over artisan ice." },
+            { id: 3, name: "Almond Pain", price: 5.00, cat: "pastry", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300&q=80", info: "Twice baked with almond cream." },
+            { id: 4, name: "Flat White", price: 4.25, cat: "coffee", img: "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?auto=format&fit=crop&w=300&q=80", info: "Velvety micro-foam and double ristretto." },
+            { id: 5, name: "Marda Club Sandwich", price: 12.50, cat: "lunch", img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=300&q=80", info: "Triple decker with local veggies." },
+            { id: 6, name: "Avocado Toast", price: 10.99, cat: "lunch", img: "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=300&q=80", info: "Sourdough, chili flakes, poached egg." },
+            { id: 7, name: "Blueberry Muffin", price: 3.50, cat: "pastry", img: "https://images.unsplash.com/photo-1558401391-7899b4bd5bbf?auto=format&fit=crop&w=300&q=80", info: "Bursting with mountain berries." },
+            { id: 8, name: "Dirty Chai", price: 6.00, cat: "coffee", img: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=300&q=80", info: "Spiced chai with a shot of espresso." },
+            { id: 9, name: "Quiche Lorraine", price: 8.50, cat: "lunch", img: "https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=300&q=80", info: "Classic bacon & swiss custard." },
+            { id: 10, name: "Cinnamon Roll", price: 4.99, cat: "pastry", img: "https://images.unsplash.com/photo-1509365465985-25d11c17e812?auto=format&fit=crop&w=300&q=80", info: "Sticky, sweet, legendary." }
         ];
 
-        function renderMenu(temp = 12) {
-            const container = document.getElementById('menu-container');
-            const weatherTip = document.getElementById('weather-tip');
-            container.innerHTML = '';
+        let cart = {};
 
-            if (temp > 10) {
-                weatherTip.innerText = "It's a beautiful " + temp + "°C! Try our cold drinks.";
-            } else {
-                weatherTip.innerText = "Stay warm! It's " + temp + "°C outside.";
-            }
-
-            items.forEach(item => {
-                const isHighlight = (temp > 10 && item.type === 'cold') || (temp <= 10 && item.type === 'warm');
-                container.innerHTML += `
-                    <div class="item-card bg-white p-4 rounded-2xl shadow-sm border ${isHighlight ? 'border-orange-400' : 'border-gray-100'} flex justify-between items-center">
-                        <div class="flex-1">
-                            <h3 class="font-bold text-lg">${item.name}</h3>
-                            <p class="text-sm text-gray-500">${item.desc}</p>
-                            <span class="text-orange-600 font-semibold">$${item.price.toFixed(2)}</span>
+        function render(filter = 'all') {
+            const grid = document.getElementById('menu-grid');
+            grid.innerHTML = '';
+            
+            items.filter(i => filter === 'all' || i.cat === filter).forEach(item => {
+                grid.innerHTML += `
+                    <div class="item-card bg-white rounded-[2rem] shadow-sm overflow-hidden flex flex-col border border-gray-50">
+                        <img src="${item.img}" class="h-48 w-full object-cover" alt="${item.name}">
+                        <div class="p-5 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold text-lg leading-tight uppercase tracking-tighter">${item.name}</h3>
+                                <span class="text-orange-500 font-black">$${item.price.toFixed(2)}</span>
+                            </div>
+                            <p class="text-[10px] text-gray-400 mb-4 flex-1">${item.info}</p>
+                            <button onclick="add(${item.id})" class="gradient-bg text-white w-full py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-orange-100 hover:opacity-90">
+                                <i class="fas fa-plus mr-2"></i> Add to Bag
+                            </button>
                         </div>
-                        <button onclick="addToCart(${item.id})" class="bg-orange-500 text-white rounded-xl p-3 h-12 w-12 hover:bg-orange-600">
-                            <i class="fas fa-plus"></i>
-                        </button>
                     </div>
                 `;
             });
         }
 
-        function addToCart(id) {
-            const item = items.find(i => i.id === id);
-            order[id] = (order[id] || 0) + 1;
-            
-            const total = Object.values(order).reduce((acc, qty) => acc + qty, 0);
-            const totalPrice = Object.keys(order).reduce((acc, key) => acc + (items.find(i => i.id == key).price * order[key]), 0);
-            
-            tg.MainButton.setText(`CHECKOUT ${total} ITEMS • $${totalPrice.toFixed(2)}`);
-            tg.MainButton.show();
+        function add(id) {
+            cart[id] = (cart[id] || 0) + 1;
+            updateCart();
+            tg.HapticFeedback.notificationOccurred('success');
         }
 
-        tg.onEvent('mainButtonClicked', function() {
-            tg.sendData(JSON.stringify(order));
-            tg.close();
-        });
+        function updateCart() {
+            const count = Object.values(cart).reduce((a, b) => a + b, 0);
+            const total = Object.keys(cart).reduce((acc, id) => {
+                const item = items.find(i => i.id == id);
+                return acc + (item.price * cart[id]);
+            }, 0);
 
-        // Demo injection of "detected" temp
-        renderMenu(12);
+            const bar = document.getElementById('cart-summary');
+            document.getElementById('cart-count').innerText = count;
+            document.getElementById('cart-total-text').innerText = `TOTAL: $${total.toFixed(2)}`;
+
+            if (count > 0) bar.classList.remove('hidden');
+            else bar.classList.add('hidden');
+        }
+
+        function filterCategory(cat) {
+            render(cat);
+            const buttons = document.querySelectorAll('.cat-btn');
+            buttons.forEach(btn => {
+                btn.classList.replace('bg-black', 'bg-white');
+                btn.classList.replace('text-white', 'text-gray-400');
+            });
+            event.target.classList.replace('bg-white', 'bg-black');
+            event.target.classList.replace('text-gray-400', 'text-white');
+        }
+
+        function tgPay() {
+            tg.showConfirm(`Ready to send order for $${Object.keys(cart).length} items?`, (ok) => {
+                if (ok) {
+                    tg.sendData(JSON.stringify({
+                        order: cart,
+                        final_total: document.getElementById('cart-total-text').innerText,
+                        user: tg.initDataUnsafe.user?.first_name || "Guest"
+                    }));
+                    tg.close();
+                }
+            });
+        }
+
+        render();
     </script>
 </body>
 </html>
