@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Marda Loop Bakery Final</title>
+    <title>Marda Loop Bakery Final Build</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -12,8 +12,8 @@
         body { font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .item-card:active { transform: scale(0.96); }
-        .modal { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(100%); }
-        .modal.active { transform: translateY(0); }
+        .modal { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(100%); visibility: hidden; }
+        .modal.active { transform: translateY(0); visibility: visible; }
         button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
         #modal-bg { transition: opacity 0.3s ease; }
     </style>
@@ -28,7 +28,7 @@
         <div id="weather-hub" class="flex flex-col items-end">
             <div class="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-2xl border border-gray-100" id="temp-box">
                 <i class="fas fa-temperature-high text-orange-500 text-[10px]"></i>
-                <span id="current-temp" class="text-xs font-black">--°</span>
+                <span id="current-temp" class="text-xs font-black">12°C</span>
             </div>
         </div>
     </header>
@@ -41,8 +41,8 @@
 
     <!-- Views -->
     <main class="px-4" id="main-content">
-        <div id="view-menu" class="grid grid-cols-2 gap-4 animate-in fade-in duration-500"></div>
-        <div id="view-history" class="hidden space-y-3 animate-in slide-in-from-right duration-300">
+        <div id="view-menu" class="grid grid-cols-2 gap-4"></div>
+        <div id="view-history" class="hidden space-y-3">
             <p class="text-center text-gray-400 text-xs py-20 italic">History is empty...</p>
         </div>
     </main>
@@ -72,7 +72,7 @@
             <span id="pay-text">PLACE ORDER</span>
             <i id="pay-icon" class="fas fa-arrow-right text-xs"></i>
         </button>
-    </header>
+    </div>
 
     <!-- Floating Bag Button -->
     <div id="floating-cart" class="fixed bottom-8 inset-x-6 bg-[#1D1D1F] text-white p-4 rounded-3xl flex justify-between items-center hidden z-40 shadow-2xl border border-white/10" onclick="toggleCart(true)">
@@ -95,7 +95,7 @@
             { id: 1, name: "Gold Croissant", price: 4.50, img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400" },
             { id: 2, name: "YYC Iced Latte", price: 5.75, img: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400" },
             { id: 3, name: "Almond Pain", price: 5.00, img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400" },
-            { id: 4, name: "Marda Club", price: 12.50, img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400" }
+            { id: 4, name: "Quiche Lorraine", price: 8.50, img: "https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?w=400" }
         ];
 
         let cart = {};
@@ -105,17 +105,18 @@
         async function fetchWeather() {
             try {
                 const res = await fetch('https://wttr.in/Calgary?format=%t');
+                if (!res.ok) throw new Error();
                 const t = await res.text();
                 document.getElementById('current-temp').innerText = t.trim().replace('+','');
-            } catch(e) { document.getElementById('current-temp').innerText = "12°"; }
+            } catch(e) { document.getElementById('current-temp').innerText = "12°C"; }
         }
         fetchWeather();
 
         function switchView(view) {
             document.getElementById('view-menu').classList.toggle('hidden', view !== 'menu');
             document.getElementById('view-history').classList.toggle('hidden', view !== 'history');
-            document.getElementById('btn-menu').className = view === 'menu' ? "flex-1 py-2 text-xs font-black rounded-xl bg-white shadow-sm tracking-widest" : "flex-1 py-2 text-xs font-black text-gray-400";
-            document.getElementById('btn-history').className = view === 'history' ? "flex-1 py-2 text-xs font-black rounded-xl bg-white shadow-sm tracking-widest" : "flex-1 py-2 text-xs font-black text-gray-400";
+            document.getElementById('btn-menu').className = view === 'menu' ? "flex-1 py-2 text-xs font-black rounded-xl bg-white shadow-sm ring-1 ring-black/5" : "flex-1 py-2 text-xs font-black text-gray-400";
+            document.getElementById('btn-history').className = view === 'history' ? "flex-1 py-2 text-xs font-black rounded-xl bg-white shadow-sm ring-1 ring-black/5" : "flex-1 py-2 text-xs font-black text-gray-400";
             if(view === 'history') renderHistory();
         }
 
@@ -125,13 +126,17 @@
             const bg = document.getElementById('modal-bg');
             if(show) {
                 renderCartList();
-                modal.classList.add('active');
                 bg.classList.remove('hidden');
+                modal.style.visibility = "visible";
+                modal.classList.add('active');
                 setTimeout(() => bg.style.opacity = "1", 10);
             } else {
                 modal.classList.remove('active');
                 bg.style.opacity = "0";
-                setTimeout(() => bg.classList.add('hidden'), 300);
+                setTimeout(() => {
+                    bg.classList.add('hidden');
+                    modal.style.visibility = "hidden";
+                }, 300);
             }
         }
 
@@ -146,7 +151,10 @@
 
         function updateGlobalUI() {
             const count = Object.values(cart).reduce((a, b) => a + b, 0);
-            const subtotal = Object.keys(cart).reduce((acc, id) => acc + (menu.find(m => m.id == id).price * cart[id]), 0);
+            const subtotal = Object.keys(cart).reduce((acc, id) => {
+                const item = menu.find(m => m.id == id);
+                return acc + (item ? item.price * cart[id] : 0);
+            }, 0);
             document.getElementById('float-count').innerText = count;
             document.getElementById('float-total').innerText = `$${subtotal.toFixed(2)}`;
             document.getElementById('floating-cart').classList.toggle('hidden', count === 0);
@@ -154,7 +162,10 @@
 
         function renderCartList() {
             const list = document.getElementById('cart-items-list');
-            const subtotal = Object.keys(cart).reduce((acc, id) => acc + (menu.find(m => m.id == id).price * cart[id]), 0);
+            const subtotal = Object.keys(cart).reduce((acc, id) => {
+                const item = menu.find(m => m.id == id);
+                return acc + (item ? item.price * cart[id] : 0);
+            }, 0);
             const gst = subtotal * 0.05;
 
             document.getElementById('sub-price').innerText = `$${subtotal.toFixed(2)}`;
@@ -162,7 +173,7 @@
             document.getElementById('final-price').innerText = `$${(subtotal + gst).toFixed(2)}`;
 
             if(!Object.keys(cart).length) {
-                list.innerHTML = `<div class="text-center py-10 text-gray-400 italic">Bag is empty</div>`;
+                list.innerHTML = `<div class="text-center py-10 text-gray-400 italic font-medium uppercase tracking-widest text-[10px]">Bag is empty</div>`;
                 document.getElementById('pay-btn').disabled = true;
                 return;
             }
@@ -170,16 +181,17 @@
 
             list.innerHTML = Object.keys(cart).map(id => {
                 const item = menu.find(m => m.id == id);
+                if(!item) return '';
                 return `
-                    <div class="flex justify-between items-center p-2">
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-2xl">
                         <div class="flex items-center space-x-3">
                             <img src="${item.img}" class="h-10 w-10 rounded-xl object-cover">
-                            <div class="text-sm font-bold text-gray-800">${item.name}</div>
+                            <div><p class="text-sm font-bold">${item.name}</p></div>
                         </div>
-                        <div class="flex items-center space-x-3 bg-gray-50 px-3 py-1 rounded-xl">
-                            <button onclick="changeQty(${id},-1)" class="text-orange-500 font-bold px-1">－</button>
-                            <span class="text-xs font-black min-w-[15px] text-center">${cart[id]}</span>
-                            <button onclick="changeQty(${id},1)" class="text-orange-500 font-bold px-1">＋</button>
+                        <div class="flex items-center space-x-4">
+                            <button onclick="changeQty(${id},-1)" class="text-orange-500 font-bold text-lg">－</button>
+                            <span class="text-sm font-black w-4 text-center">${cart[id]}</span>
+                            <button onclick="changeQty(${id},1)" class="text-orange-500 font-bold text-lg">＋</button>
                         </div>
                     </div>
                 `;
@@ -214,7 +226,6 @@
                     toggleCart(false);
                     isProcessing = false;
                     switchView('history');
-                    // Reset Button
                     setTimeout(() => {
                         btn.classList.replace('bg-green-500', 'bg-[#1D1D1F]');
                         txt.innerText = "PLACE ORDER";
@@ -226,20 +237,23 @@
 
         function renderHistory() {
             const list = document.getElementById('view-history');
-            if(!orderHistory.length) return;
-            list.innerHTML = `<h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[.2em] mb-4">Past Transactions</h3>` + orderHistory.map(o => `
-                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex justify-between items-center">
-                    <div><p class="text-[9px] font-black text-orange-500">${o.id} • ${o.date}</p><p class="font-bold text-sm">Completed</p></div>
+            if(!orderHistory.length) {
+                list.innerHTML = `<p class="text-center text-gray-400 text-xs py-20 italic font-medium">History is empty...</p>`;
+                return;
+            }
+            list.innerHTML = `<h3 class="text-[9px] font-black text-gray-400 uppercase tracking-[.3em] mb-4">Past Transactions</h3>` + orderHistory.map(o => `
+                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex justify-between items-center mb-3">
+                    <div><p class="text-[9px] font-black text-orange-500 tracking-tighter">${o.id} • ${o.date}</p><p class="font-bold text-sm">Completed</p></div>
                     <div class="font-black text-lg uppercase">${o.total}</div>
                 </div>
             `).join('');
         }
 
         document.getElementById('view-menu').innerHTML = menu.map(i => `
-            <div class="item-card bg-white p-3 rounded-[2.5rem] shadow-sm border border-gray-50 flex flex-col items-center">
-                <img src="${i.img}" class="h-28 w-full object-cover rounded-[2rem] mb-3">
+            <div class="item-card bg-white p-3 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col items-center">
+                <img src="${i.img}" class="h-28 w-full object-cover rounded-[2.2rem] mb-3">
                 <h3 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 text-center">${i.name}</h3>
-                <p class="font-black text-lg mb-3">$${i.price.toFixed(2)}</p>
+                <p class="font-black text-base mb-3">$${i.price.toFixed(2)}</p>
                 <button onclick="changeQty(${i.id},1)" class="w-full bg-gray-50 text-orange-500 py-3 rounded-2xl active:bg-orange-500 active:text-white transition-all"><i class="fas fa-plus"></i></button>
             </div>
         `).join('');
